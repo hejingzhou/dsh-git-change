@@ -1,0 +1,6 @@
+# Standalone repository ignore rules.
+node_modules/
+.pnpm-store/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Git Changes">
+  <rect width="64" height="64" rx="14" fill="#151A24"/>
+  <g fill="none" stroke="#7AA2FF" stroke-width="3.4" stroke-linecap="round">
+    <path d="M22 17v26"/>
+    <path d="M22 27c0 5.5 4.5 9 10 9h10"/>
+  </g>
+  <circle cx="22" cy="16" r="5" fill="#7AA2FF"/>
+  <circle cx="22" cy="44" r="5" fill="#4CD08B"/>
+  <circle cx="44" cy="36" r="5" fill="#FFB35C"/>
+</svg>

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Git Changes",
+    "description": "A right-sidebar tab with the working-tree changes and their diffs, the commit graph, one-click commit (local or remote) and one-click pull."
+  }
+}

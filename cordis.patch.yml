@@ -1,0 +1,6 @@
+# Loader patch for the Git Changes bundle: one Host row that serves the
+# read-only status/diff/log JSON the right-sidebar tab consumes and the two
+# explicit commit/pull actions.
+- insert:
+    - id: git-changes
+      name: 'dsh-git-tab'

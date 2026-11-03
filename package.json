@@ -1,0 +1,58 @@
+{
+  "name": "dsh-git-tab",
+  "version": "1.0.0",
+  "description": "Right Sidebar Git panel for DeepSeek Harness: working-tree changes with diffs, the commit graph, one-click commit (local or remote) and one-click pull.",
+  "type": "module",
+  "license": "MIT",
+  "author": {
+    "name": "dsh-git-tab contributors"
+  },
+  "homepage": "https://github.com/hejingzhou/dsh-git-tab",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hejingzhou/dsh-git-tab.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hejingzhou/dsh-git-tab/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "git",
+    "diff",
+    "commit",
+    "pull",
+    "right-sidebar",
+    "cordis"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "assets/icon-180.png",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar-right"
+      ]
+    }
+  }
+}
