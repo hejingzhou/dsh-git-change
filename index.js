@@ -47,7 +47,7 @@ const LOCAL_ADDRESS =
 const BODY_INVALID = Symbol('invalid-body')
 const BODY_TOO_LARGE = Symbol('body-too-large')
 
-/** Register the five routes; all of them dispose with the plugin. */
+/** Register the seven routes; all of them dispose with the plugin. */
 export function apply(ctx) {
   registerRoute(ctx, `${BASE}/status`, ['GET'], async (url, _body, signal) => {
     return collectStatus(ctx, url.searchParams.get('sessionId') || '', signal)
@@ -63,6 +63,12 @@ export function apply(ctx) {
   })
   registerRoute(ctx, `${BASE}/log`, ['GET'], async (url, _body, signal) => {
     return collectLog(ctx, url.searchParams.get('sessionId') || '', url.searchParams.get('limit') || '', signal)
+  })
+  registerRoute(ctx, `${BASE}/branches`, ['GET'], async (url, _body, signal) => {
+    return collectBranches(ctx, url.searchParams.get('sessionId') || '', signal)
+  })
+  registerRoute(ctx, `${BASE}/switch`, ['POST'], async (url, body, signal) => {
+    return switchBranch(ctx, url.searchParams.get('sessionId') || '', body, signal)
   })
   registerRoute(ctx, `${BASE}/commit`, ['POST'], async (url, body, signal) => {
     return commitAll(ctx, url.searchParams.get('sessionId') || '', body, signal)
@@ -757,6 +763,108 @@ async function readBranchInfo(root, signal) {
     if (Number.isFinite(Number(behind))) info.behind = Number(behind)
   }
   return info
+}
+
+/** Local branches, the current one, and whether the tree permits switching. */
+async function collectBranches(ctx, sessionId, signal) {
+  const located = await locateRepository(ctx, sessionId, signal)
+  if (located.error !== undefined) {
+    return {
+      status: 'ok',
+      isRepo: false,
+      cwd: located.directory,
+      branches: [],
+      message: located.error.message,
+    }
+  }
+  const { root } = located
+  const status = await runGit(
+    ['-c', 'core.quotepath=false', 'status', '--porcelain', '-z', '--untracked-files=all'],
+    root,
+    signal,
+  )
+  const result = await runGit(
+    ['-c', 'core.quotepath=false', 'for-each-ref', '--format=%(refname:short)%09%(HEAD)%09%(upstream:short)', 'refs/heads'],
+    root,
+    signal,
+  )
+  const branches = []
+  if (result.error === null || result.stdout !== '') {
+    for (const line of result.stdout.split('\n')) {
+      if (line === '') continue
+      const fields = line.split('\t')
+      const name = fields[0]
+      if (typeof name !== 'string' || name === '') continue
+      branches.push({
+        name,
+        current: fields[1] === '*',
+        upstream: fields[2] || null,
+      })
+    }
+  }
+  branches.sort((a, b) => {
+    if (a.current !== b.current) return a.current ? -1 : 1
+    return a.name < b.name ? -1 : a.name > b.name ? 1 : 0
+  })
+  const branchInfo = await readBranchInfo(root, signal)
+  return {
+    status: 'ok',
+    isRepo: true,
+    root,
+    branch: branchInfo.branch,
+    detached: branchInfo.detached,
+    /** True only when nothing is staged, unstaged or untracked. */
+    clean: status.stdout === '',
+    branches,
+  }
+}
+
+/**
+ * Switch to one existing local branch. This is refused unless the working tree
+ * is completely clean, because a switch moves HEAD under the user's files.
+ */
+async function switchBranch(ctx, sessionId, body, signal) {
+  const located = await locateRepository(ctx, sessionId, signal)
+  if (located.error !== undefined) return located.error
+  const { root } = located
+  const requested = body !== null && typeof body.branch === 'string' ? body.branch.trim() : ''
+  if (requested === '' || requested.length > 255 || requested.startsWith('-')) {
+    return { status: 'error', code: 'invalidBranch', message: 'invalid branch name' }
+  }
+  const valid = await runGit(['check-ref-format', '--branch', requested], root, signal)
+  if (valid.error !== null) {
+    return { status: 'error', code: 'invalidBranch', message: 'invalid branch name' }
+  }
+  const exists = await runGit(['rev-parse', '--verify', '--quiet', `refs/heads/${requested}`], root, signal)
+  if (exists.error !== null) {
+    return { status: 'error', code: 'branchNotFound', message: 'branch does not exist' }
+  }
+  const status = await runGit(
+    ['-c', 'core.quotepath=false', 'status', '--porcelain', '-z', '--untracked-files=all'],
+    root,
+    signal,
+  )
+  if (status.stdout !== '') {
+    return { status: 'error', code: 'dirtyWorkTree', message: 'the working tree has changes' }
+  }
+  const current = await runGit(['symbolic-ref', '--short', '-q', 'HEAD'], root, signal)
+  if (current.error === null && current.stdout.trim() === requested) {
+    return { status: 'ok', switched: false, branch: requested }
+  }
+  const switched = await runGit(['switch', requested], root, signal, GIT_ACTION_TIMEOUT_MS)
+  if (switched.error !== null) {
+    return {
+      status: 'error',
+      code: 'switchFailed',
+      message: cleanGitMessage(switched.stderr || (switched.error && switched.error.message) || 'git switch failed'),
+    }
+  }
+  return {
+    status: 'ok',
+    switched: true,
+    branch: requested,
+    detail: oneLine(switched.stderr || switched.stdout),
+  }
 }
 
 /**

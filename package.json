@@ -1,19 +1,19 @@
 {
   "name": "dsh-git-tab",
   "version": "1.0.0",
-  "description": "Right Sidebar Git panel for DeepSeek Harness: working-tree changes with diffs, the commit graph, one-click commit (local or remote) and one-click pull.",
+  "description": "Right Sidebar Git panel for DeepSeek Harness: working-tree changes with diffs, the commit graph, one-click commit (local or remote), one-click pull, and branch switching while the tree is clean.",
   "type": "module",
   "license": "MIT",
   "author": {
     "name": "dsh-git-tab contributors"
   },
-  "homepage": "https://github.com/hejingzhou/dsn-git-change",
+  "homepage": "https://github.com/hejingzhou/dsh-git-change",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hejingzhou/dsn-git-change.git"
+    "url": "git+https://github.com/hejingzhou/dsh-git-change.git"
   },
   "bugs": {
-    "url": "https://github.com/hejingzhou/dsn-git-change/issues"
+    "url": "https://github.com/hejingzhou/dsh-git-change/issues"
   },
   "keywords": [
     "dsh",

@@ -20,6 +20,19 @@ window.__ModuleLoader__.load({
       '.gitc-top{flex:none;display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:.5px solid var(--dsw-alias-border-l1)}',
       '.gitc-branch{display:flex;align-items:center;gap:6px;min-width:0;flex:1 1 auto;font-weight:600}',
       '.gitc-branch-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.gitc-branch-button{border:0;background:transparent;color:inherit;font:inherit;padding:0;text-align:left;cursor:pointer;border-radius:4px}',
+      '.gitc-branch-button:hover{color:var(--dsw-alias-brand-primary)}',
+      '.gitc-branch-button:disabled{opacity:.6;cursor:default}',
+      '.gitc-branch-caret{flex:none;font-size:9px;color:var(--dsw-alias-label-secondary)}',
+      '.gitc-branches{flex:none;max-height:44%;overflow:auto;border-bottom:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);padding:2px 0 4px}',
+      '.gitc-branches-head{display:flex;align-items:center;gap:6px;padding:4px 12px;font-size:11px;color:var(--dsw-alias-label-secondary)}',
+      '.gitc-branch-row{display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;padding:4px 12px;border:0;background:transparent;color:inherit;font:inherit;font-size:12px;text-align:left;cursor:pointer}',
+      '.gitc-branch-row:hover{background:var(--dsw-alias-bg-layer-2)}',
+      '.gitc-branch-row:disabled{opacity:.5;cursor:default}',
+      '.gitc-branch-row[aria-pressed="true"]{color:var(--dsw-alias-brand-primary);font-weight:600}',
+      '.gitc-branch-name{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.gitc-branch-upstream{flex:none;font-size:10px;color:var(--dsw-alias-label-secondary);font-family:ui-monospace,SFMono-Regular,Consolas,monospace}',
+      '.gitc-branch-tag{flex:none;font-size:10px;padding:0 5px;border-radius:4px;color:var(--dsw-alias-brand-primary);background:color-mix(in srgb,var(--dsw-alias-brand-primary) 15%,transparent)}',
       '.gitc-summary{flex:none;color:var(--dsw-alias-label-secondary);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap}',
       '.gitc-refresh{flex:none;margin-left:auto;border:.5px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);border-radius:6px;padding:2px 9px;font:inherit;font-size:11px;line-height:1.7;cursor:pointer}',
       '.gitc-refresh:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}',
@@ -148,6 +161,19 @@ window.__ModuleLoader__.load({
       pushFailedNotice: '已本地提交 {hash}，但推送失败：{message}',
       pushedOnly: '已推送本地提交',
       pushFailed: '推送失败：{message}',
+      branchSwitch: '切换分支',
+      branchPanelTitle: '本地分支（工作区干净时可切换）',
+      branchCurrentTag: '当前',
+      branchDirty: '工作区有未提交的更改，请先提交后再切换分支',
+      branchSwitching: '正在切换…',
+      branchSwitched: '已切换到 {branch}',
+      branchAlready: '已经在该分支：{branch}',
+      branchListLoading: '正在读取分支…',
+      branchListError: '读取分支失败：{message}',
+      branchListEmpty: '没有本地分支',
+      branchNotFound: '分支不存在',
+      invalidBranch: '分支名不合法',
+      branchSwitchFailed: '切换分支失败：{message}',
       nothingToCommit: '没有需要提交的更改',
       emptyMessage: '请填写提交信息',
       noUpstream: '当前分支没有上游分支，无法拉取',
@@ -209,6 +235,19 @@ window.__ModuleLoader__.load({
       pushFailedNotice: 'Committed locally {hash}, but the push failed: {message}',
       pushedOnly: 'Pushed local commits',
       pushFailed: 'Push failed: {message}',
+      branchSwitch: 'Switch branch',
+      branchPanelTitle: 'Local branches (only while the tree is clean)',
+      branchCurrentTag: 'current',
+      branchDirty: 'The working tree has uncommitted changes. Commit them before switching branches.',
+      branchSwitching: 'Switching…',
+      branchSwitched: 'Switched to {branch}',
+      branchAlready: 'Already on {branch}',
+      branchListLoading: 'Reading branches…',
+      branchListError: 'Could not read branches: {message}',
+      branchListEmpty: 'No local branches',
+      branchNotFound: 'The branch does not exist',
+      invalidBranch: 'Invalid branch name',
+      branchSwitchFailed: 'Could not switch branch: {message}',
       nothingToCommit: 'Nothing to commit',
       emptyMessage: 'Enter a commit message',
       noUpstream: 'The current branch has no upstream branch to pull from',
@@ -313,6 +352,10 @@ window.__ModuleLoader__.load({
       if (code === 'messageTooLong') return t('emptyMessage')
       if (code === 'noUpstream') return t('noUpstream')
       if (code === 'pushFailed') return t('pushFailed', { message: messageOf(error) })
+      if (code === 'dirtyWorkTree') return t('branchDirty')
+      if (code === 'branchNotFound') return t('branchNotFound')
+      if (code === 'invalidBranch') return t('invalidBranch')
+      if (code === 'switchFailed') return t('branchSwitchFailed', { message: messageOf(error) })
       if (code === 'notRepository') return t('noRepo')
       return t('actionFailed', { message: messageOf(error) })
     }
@@ -460,6 +503,8 @@ window.__ModuleLoader__.load({
       const [messageTouched, setMessageTouched] = React.useState(false)
       const [busy, setBusy] = React.useState(null)
       const [commitChoice, setCommitChoice] = React.useState(false)
+      const [branchOpen, setBranchOpen] = React.useState(false)
+      const [branches, setBranches] = React.useState({ phase: 'idle' })
       const [notice, setNotice] = React.useState(null)
 
       const reload = () => setSeq((value) => value + 1)
@@ -512,6 +557,23 @@ window.__ModuleLoader__.load({
         )
         return () => controller.abort()
       }, [sessionId, seq, view])
+
+      React.useEffect(() => {
+        if (branchOpen !== true) return undefined
+        const controller = new AbortController()
+        setBranches({ phase: 'loading' })
+        request('/branches', { sessionId }, controller.signal).then(
+          (data) => {
+            if (controller.signal.aborted) return
+            setBranches({ phase: 'ready', data })
+          },
+          (error) => {
+            if (controller.signal.aborted) return
+            setBranches({ phase: 'error', message: messageOf(error), code: codeOf(error) })
+          },
+        )
+        return () => controller.abort()
+      }, [branchOpen, sessionId, seq])
 
       const ready = status.phase === 'ready'
       const data = ready ? status.data : null
@@ -581,6 +643,8 @@ window.__ModuleLoader__.load({
 
       const switchView = (next) => {
         if (next === view) return
+        setBranchOpen(false)
+        setCommitChoice(false)
         setView(next)
         setSeq((value) => value + 1)
       }
@@ -667,6 +731,38 @@ window.__ModuleLoader__.load({
         )
       }
 
+      const openBranches = () => {
+        if (busy !== null || data === null || data.isRepo === false) return
+        if (files.length > 0) {
+          setBranchOpen(false)
+          setNotice({ kind: 'error', text: t('branchDirty') })
+          return
+        }
+        setBranchOpen((value) => !value)
+      }
+
+      const switchTo = (name) => {
+        if (busy !== null) return
+        setBusy('branch')
+        setNotice(null)
+        postJson('/switch', { sessionId }, { branch: name }).then(
+          (result) => {
+            setBusy(null)
+            setBranchOpen(false)
+            const switched = result.switched === true
+            setNotice({
+              kind: 'ok',
+              text: switched ? t('branchSwitched', { branch: name }) : t('branchAlready', { branch: name }),
+            })
+            setSeq((value) => value + 1)
+          },
+          (error) => {
+            setBusy(null)
+            setNotice({ kind: 'error', text: actionErrorText(t, error) })
+          },
+        )
+      }
+
       let summary = ''
       if (view === 'changes') {
         summary =
@@ -696,7 +792,20 @@ window.__ModuleLoader__.load({
       const header = h(
         'div',
         { className: 'gitc-top' },
-        h('span', { className: 'gitc-branch' }, h(GitBranchIcon, { size: 14 }), h('span', { className: 'gitc-branch-text' }, branchLabel)),
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'gitc-branch gitc-branch-button',
+            title: t('branchSwitch'),
+            'aria-expanded': branchOpen,
+            disabled: busy !== null || data === null || data.isRepo === false,
+            onClick: openBranches,
+          },
+          h(GitBranchIcon, { size: 14 }),
+          h('span', { className: 'gitc-branch-text' }, branchLabel),
+          h('span', { className: 'gitc-branch-caret', 'aria-hidden': 'true' }, '▾'),
+        ),
         summary === '' ? null : h('span', { className: 'gitc-summary' }, summary),
         h(
           'button',
@@ -711,6 +820,53 @@ window.__ModuleLoader__.load({
           status.refreshing === true ? t('refreshing') : t('refresh'),
         ),
       )
+
+      const branchList =
+        branches.phase === 'ready' && branches.data && Array.isArray(branches.data.branches)
+          ? branches.data.branches
+          : []
+      const branchPanel =
+        branchOpen === true
+          ? h(
+              'div',
+              { className: 'gitc-branches' },
+              h('div', { className: 'gitc-branches-head' }, t('branchPanelTitle')),
+              branches.phase === 'loading' || branches.phase === 'idle'
+                ? h('div', { className: 'gitc-note' }, t('branchListLoading'))
+                : branches.phase === 'error'
+                  ? h('div', { className: 'gitc-note gitc-error' }, errorText(t, 'branchListError', branches))
+                  : h(
+                      'div',
+                      null,
+                      branches.data && branches.data.clean === false
+                        ? h('div', { className: 'gitc-note' }, t('branchDirty'))
+                        : null,
+                      branchList.length === 0
+                        ? h('div', { className: 'gitc-note' }, t('branchListEmpty'))
+                        : branchList.map((item) =>
+                            h(
+                              'button',
+                              {
+                                key: item.name,
+                                type: 'button',
+                                className: 'gitc-branch-row',
+                                'aria-pressed': item.current === true,
+                                disabled: busy !== null || (branches.data && branches.data.clean === false),
+                                title: item.upstream ? `${item.name} → ${item.upstream}` : item.name,
+                                onClick: () => switchTo(item.name),
+                              },
+                              h('span', { className: 'gitc-branch-name' }, item.name),
+                              item.upstream
+                                ? h('span', { className: 'gitc-branch-upstream' }, item.upstream)
+                                : null,
+                              item.current === true
+                                ? h('span', { className: 'gitc-branch-tag' }, t('branchCurrentTag'))
+                                : null,
+                            ),
+                          ),
+                    ),
+            )
+          : null
 
       const toolbar = h(
         'div',
@@ -982,6 +1138,7 @@ window.__ModuleLoader__.load({
         { className: 'gitc-root' },
         h('style', { key: 'gitc-css' }, CSS),
         header,
+        branchPanel,
         toolbar,
         commitBar,
         choiceRow,
