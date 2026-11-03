@@ -25,7 +25,7 @@
 ### 从 GitHub 安装（源码安装）
 
 ```sh
-dsh plugin --profile web add github:hejingzhou/dsh-git-tab
+dsh plugin --profile web add github:hejingzhou/dsn-git-change
 ```
 
 安装后在左侧栏「插件」页确认已启用，刷新 Web 页面；展开会话右侧栏，指南里点 **Git 变更** 即可。

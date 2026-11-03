@@ -7,13 +7,13 @@
   "author": {
     "name": "dsh-git-tab contributors"
   },
-  "homepage": "https://github.com/hejingzhou/dsh-git-tab",
+  "homepage": "https://github.com/hejingzhou/dsn-git-change",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hejingzhou/dsh-git-tab.git"
+    "url": "git+https://github.com/hejingzhou/dsn-git-change.git"
   },
   "bugs": {
-    "url": "https://github.com/hejingzhou/dsh-git-tab/issues"
+    "url": "https://github.com/hejingzhou/dsn-git-change/issues"
   },
   "keywords": [
     "dsh",

@@ -1,16 +1,16 @@
 # awesome-dsh-plugin 收录条目（提交到收录仓库时使用）
 #
 # 复制为 awesome-dsh-plugin 仓库中的：
-#   data/plugins/hejingzhou__dsh-git-tab.yml
+#   data/plugins/hejingzhou__dsn-git-change.yml
 # 然后提交 PR（一个 PR 只加这一个文件）。
 #
 # 说明见 contributing.md：
 #   https://github.com/awesome-dsh-plugin/awesome-dsh-plugin/blob/main/contributing.md
-url: https://github.com/hejingzhou/dsh-git-tab
-name: hejingzhou/dsh-git-tab
+url: https://github.com/hejingzhou/dsn-git-change
+name: hejingzhou/dsn-git-change
 category: git
 description:
   en: A right-sidebar Git tab for DeepSeek Harness that lists working-tree changes with inline diffs and the commit graph, and commits (locally or with a push) and fast-forward pulls from the panel.
   zh: DSH 右侧栏 Git 页签：列出工作区改动并内联显示差异、浏览提交树，并可在面板内提交（仅本地或提交并推送）与快进拉取。
 # 市场卡片图标：GitHub 托管的位图（png/jpg/webp），约 96px 显示
-icon: https://raw.githubusercontent.com/hejingzhou/dsh-git-tab/main/assets/icon-180.png
+icon: https://raw.githubusercontent.com/hejingzhou/dsn-git-change/main/assets/icon-180.png
